@@ -4,6 +4,7 @@ from collections import Counter
 from random import shuffle
 from tqdm import tqdm
 from classifiers.naive_bayes import dataset
+from classifiers import CodeTimer
 
 import classifiers as clss
 import nltk
@@ -37,22 +38,26 @@ def train_and_classify(train_path, test_path, name=None):
 
     shuffle(train_set)
 
-    print('Fetching most common words...')
-    common_words = most_common_words(train_set, 1000)
+    with CodeTimer('Feature extraction completed in {:.2f}s'):
+        print('Fetching most common words...')
+        common_words = most_common_words(train_set, 1000)
 
-    print('Extracting featuresets...')
-    featuresets = [(document_features(d, common_words), c) for (d, c) in tqdm(train_set)]
-    del train_set
+        print('Extracting featuresets...')
+        featuresets = [(document_features(d, common_words), c) for (d, c) in tqdm(train_set)]
+        del train_set
 
-    print('Classifying training set (NaiveBayes)...')
-    classifier = nltk.NaiveBayesClassifier.train(featuresets)
-    del featuresets
+    with CodeTimer('Training completed in {:.2f}s'):
+        print('Training the data (NaiveBayes)...')
+        classifier = nltk.NaiveBayesClassifier.train(featuresets)
+        del featuresets
 
     print('Testing classifiers.....')
     test_set = dataset.load(test_path)
-    test_set_features = [(document_features(d, common_words), c) for (d, c) in tqdm(test_set)]
-    del test_set
-    accuracy = nltk.classify.accuracy(classifier, test_set_features)
+
+    with CodeTimer('Classification completed in {:.2f}s'):
+        test_set_features = [(document_features(d, common_words), c) for (d, c) in tqdm(test_set)]
+        del test_set
+        accuracy = nltk.classify.accuracy(classifier, test_set_features)
 
     print('Naive Bayes Accuracy: {}'.format(accuracy))
 
