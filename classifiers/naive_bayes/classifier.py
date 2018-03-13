@@ -38,7 +38,7 @@ def train_and_classify(train_path, test_path, name=None):
 
     shuffle(train_set)
 
-    with CodeTimer('Feature extraction completed in {:.2f}s'):
+    with CodeTimer('Training completed in {:.2f}s'):
         print('Fetching most common words...')
         common_words = most_common_words(train_set, 1000)
 
@@ -46,7 +46,6 @@ def train_and_classify(train_path, test_path, name=None):
         featuresets = [(document_features(d, common_words), c) for (d, c) in tqdm(train_set)]
         del train_set
 
-    with CodeTimer('Training completed in {:.2f}s'):
         print('Training the data (NaiveBayes)...')
         classifier = nltk.NaiveBayesClassifier.train(featuresets)
         del featuresets
@@ -61,7 +60,7 @@ def train_and_classify(train_path, test_path, name=None):
 
     print('Naive Bayes Accuracy: {}'.format(accuracy))
 
-    classifier.show_most_informative_features(10)
+    classifier.show_most_informative_features(30)
 
 
 if __name__ == '__main__':
