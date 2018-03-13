@@ -14,6 +14,8 @@ ARTICLES_TEST = os.path.join(DATA_DIR, 'articles_test.csv')
 POLITIFACT_TRAIN = os.path.join(DATA_DIR, 'politifact_train.csv')
 POLITIFACT_TEST = os.path.join(DATA_DIR, 'politifact_test.csv')
 
+WORD_VECTORS = os.path.join(DATA_DIR, 'GoogleNews-vectors-negative300-SLIM.bin')
+
 
 class CodeTimer:
     def __init__(self, print_string):

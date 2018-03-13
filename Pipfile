@@ -16,6 +16,7 @@ tqdm = "*"
 requests = "*"
 pandas = "*"
 tensorflow = "*"
+gensim = "*"
 
 
 [dev-packages]
