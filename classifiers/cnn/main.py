@@ -19,7 +19,7 @@ def cnn_model_fn(features, labels, mode):
     # Output: [batch_size, cnn.TEXT_IMAGE_WIDTH, cnn.TEXT_IMAGE_HEIGHT, 32]
     conv1 = tf.layers.conv2d(
         inputs=input_layer,
-        filters=32,
+        filters=cnn.FILTER_SIZES[0],
         kernel_size=[5, 5],
         padding="same",
         activation=tf.nn.relu)
@@ -32,7 +32,7 @@ def cnn_model_fn(features, labels, mode):
     # Output: [batch_size, cnn.TEXT_IMAGE_WIDTH / 2, cnn.TEXT_IMAGE_HEIGHT / 2, 64]
     conv2 = tf.layers.conv2d(
         inputs=pool1,
-        filters=64,
+        filters=cnn.FILTER_SIZES[1],
         kernel_size=[5, 5],
         padding="same",
         activation=tf.nn.relu)
@@ -42,7 +42,8 @@ def cnn_model_fn(features, labels, mode):
     pool2 = tf.layers.max_pooling2d(inputs=conv2, pool_size=[2, 2], strides=2)
 
     # Dense Layer
-    feature_count = int((cnn.TEXT_IMAGE_WIDTH / 4) * (cnn.TEXT_IMAGE_HEIGHT / 4) * 64)
+    feature_count = int((cnn.TEXT_IMAGE_WIDTH / 4) * (cnn.TEXT_IMAGE_HEIGHT / 4) *
+                        cnn.FILTER_SIZES[1])
     pool2_flat = tf.reshape(pool2, [-1, feature_count])
     dense = tf.layers.dense(inputs=pool2_flat, units=1024, activation=tf.nn.relu)
     dropout = tf.layers.dropout(
