@@ -7,6 +7,8 @@ import pandas as pd
 from gensim.models import KeyedVectors
 from nltk.corpus import stopwords as sw
 
+from classifiers import cnn
+
 
 class Dataset:
     def __init__(self):
@@ -15,12 +17,15 @@ class Dataset:
         self._stopwords = sw.words('english')
         self._model = KeyedVectors.load_word2vec_format(cls.WORD_VECTORS, binary=True)
 
-    def get_embeddings(self, document, max_size=-1):
+    def get_embeddings(self, document, max_size=-1, flatten=False):
         embeddings = np.array([self._model.wv[token]
                                for token in self.get_tokens(document)])
 
         if max_size > 0:
             embeddings = self.pad_to_size(embeddings, max_size)
+
+        if flatten:
+            return embeddings.flatten()
 
         return embeddings
 
@@ -40,7 +45,7 @@ class Dataset:
         return (token for token in self._tokenizer.tokenize(document) if
                 self.can_use_token(token))
 
-    def get_corpus(self, filepath, max_size=20):
+    def get_corpus(self, filepath):
         df = pd.read_csv(filepath)
 
         # Fetch the labels as numbers
@@ -48,9 +53,11 @@ class Dataset:
         label_indices = dict(zip(labels, range(len(labels))))
         y = np.array([label_indices[l] for l in df.label])
 
-        # Fetch the input documents
-        X = [self.get_embeddings(document, max_size)
-             for document in df.text
-             if len(document) > 1]
+        # X = np.empty((len(df), cnn.TEXT_IMAGE_SIZE))
+        # for document in df.text:
+        #     np.append(X, self.get_embeddings(document, cnn.TEXT_IMAGE_HEIGHT, True))
+
+        X = np.array([np.array(self.get_embeddings(d, cnn.TEXT_IMAGE_HEIGHT, True))
+                      for d in df.text])
 
         return X, y

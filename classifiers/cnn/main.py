@@ -2,22 +2,21 @@ import classifiers as cls
 import tensorflow as tf
 import numpy as np
 
+from classifiers import cnn
 from classifiers.cnn import Dataset
 from matplotlib import pyplot as plt
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
-IMAGE_WIDTH = 300
-IMAGE_HEIGHT = 20
-
 
 def cnn_model_fn(features, labels, mode):
     """Model function for CNN."""
     # Input Layer in the form of [batch_size, image_width, image_height, channels]
-    input_layer = tf.reshape(features["x"], [-1, IMAGE_WIDTH, IMAGE_HEIGHT, 1])
+    shape = [-1, cnn.TEXT_IMAGE_WIDTH, cnn.TEXT_IMAGE_HEIGHT, 1]
+    input_layer = tf.reshape(features["x"], shape)
 
     # Convolutional Layer #1
-    # Output shape: [batch_size, 28, 28, 32]
+    # Output: [batch_size, cnn.TEXT_IMAGE_WIDTH, cnn.TEXT_IMAGE_HEIGHT, 32]
     conv1 = tf.layers.conv2d(
         inputs=input_layer,
         filters=32,
@@ -25,26 +24,32 @@ def cnn_model_fn(features, labels, mode):
         padding="same",
         activation=tf.nn.relu)
 
-    # Pooling Layer #1 Output: [batch_size, 14, 14, 32]
+    # Pooling Layer #1
+    # Output: [batch_size, cnn.TEXT_IMAGE_WIDTH / 2, cnn.TEXT_IMAGE_HEIGHT / 2, 32]
     pool1 = tf.layers.max_pooling2d(inputs=conv1, pool_size=[2, 2], strides=2)
 
-    # Convolutional Layer #2 and Pooling Layer #2
+    # Convolutional Layer #2
+    # Output: [batch_size, cnn.TEXT_IMAGE_WIDTH / 2, cnn.TEXT_IMAGE_HEIGHT / 2, 64]
     conv2 = tf.layers.conv2d(
         inputs=pool1,
         filters=64,
         kernel_size=[5, 5],
         padding="same",
         activation=tf.nn.relu)
+
+    # Pooling later #2
+    # Output: [batch_size, cnn.TEXT_IMAGE_WIDTH / 4, cnn.TEXT_IMAGE_HEIGHT / 4, 64]
     pool2 = tf.layers.max_pooling2d(inputs=conv2, pool_size=[2, 2], strides=2)
 
     # Dense Layer
-    pool2_flat = tf.reshape(pool2, [-1, 7 * 7 * 64])
+    feature_count = int((cnn.TEXT_IMAGE_WIDTH / 4) * (cnn.TEXT_IMAGE_HEIGHT / 4) * 64)
+    pool2_flat = tf.reshape(pool2, [-1, feature_count])
     dense = tf.layers.dense(inputs=pool2_flat, units=1024, activation=tf.nn.relu)
     dropout = tf.layers.dropout(
         inputs=dense, rate=0.4, training=mode == tf.estimator.ModeKeys.TRAIN)
 
     # Logits Layer, size: [batch_size, 10]
-    logits = tf.layers.dense(inputs=dropout, units=10)
+    logits = tf.layers.dense(inputs=dropout, units=cnn.LABEL_COUNT)
 
     predictions = {
         # Generate predictions (for PREDICT and EVAL mode)
@@ -79,20 +84,22 @@ def cnn_model_fn(features, labels, mode):
 
 
 if __name__ == "__main__":
-    # d = Dataset()
-    # X, y = d.get_corpus(cls.MOVIE_REVIEWS_TRAIN)
     print('Loading data...')
-    mnist = tf.contrib.learn.datasets.load_dataset("mnist")
-    train_data = mnist.train.images # Returns np.array
-    train_labels = np.asarray(mnist.train.labels, dtype=np.int32)
-    eval_data = mnist.test.images # Returns np.array
-    eval_labels = np.asarray(mnist.test.labels, dtype=np.int32)
+    d = Dataset()
+    train_data, train_labels = d.get_corpus(cls.MOVIE_REVIEWS_TRAIN)
+    eval_data, eval_labels = d.get_corpus(cls.MOVIE_REVIEWS_TEST)
+
+    # mnist = tf.contrib.learn.datasets.load_dataset("mnist")
+    # train_data = mnist.train.images  # Returns np.array
+    # train_labels = np.asarray(mnist.train.labels, dtype=np.int32)
+    # eval_data = mnist.test.images  # Returns np.array
+    # eval_labels = np.asarray(mnist.test.labels, dtype=np.int32)
 
     print('Creating estimators...')
     mnist_classifier = tf.estimator.Estimator(
         model_fn=cnn_model_fn, model_dir="/tmp/mnist_convnet_model")
 
-    tensors_to_log = {} # {"probabilities": "softmax_tensor"}
+    tensors_to_log = {}  # {"probabilities": "softmax_tensor"}
     logging_hook = tf.train.LoggingTensorHook(tensors=tensors_to_log, every_n_iter=50)
 
     train_input_fn = tf.estimator.inputs.numpy_input_fn(
