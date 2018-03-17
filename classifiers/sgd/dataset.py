@@ -21,6 +21,7 @@ Corpus: ([str], [str]) = namedtuple('Corpus', 'data target')
 Dataset = namedtuple('Dataset', 'data target labels')
 pbar = None
 
+
 def get_labels(target) -> ([str], [int]):
     labels = list(set(target))
     label_indices = dict(zip(labels, range(len(labels))))
