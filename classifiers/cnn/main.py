@@ -20,7 +20,7 @@ def cnn_model_fn(features, labels, mode):
     conv1 = tf.layers.conv2d(
         inputs=input_layer,
         filters=cnn.FILTER_SIZES[0],
-        kernel_size=[5, 5],
+        kernel_size=[5, cnn.TEXT_IMAGE_WIDTH],
         padding="same",
         activation=tf.nn.relu)
 
@@ -33,7 +33,7 @@ def cnn_model_fn(features, labels, mode):
     conv2 = tf.layers.conv2d(
         inputs=pool1,
         filters=cnn.FILTER_SIZES[1],
-        kernel_size=[5, 5],
+        kernel_size=[5, cnn.TEXT_IMAGE_WIDTH],
         padding="same",
         activation=tf.nn.relu)
 

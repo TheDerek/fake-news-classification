@@ -1,23 +1,15 @@
 import os
-
-from tqdm import tqdm
-
-import transformers as trf
 import numpy as np
 
+from classifiers import transformers as trf
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.pipeline import Pipeline
 from collections import namedtuple
 from pandas import read_csv
+from tqdm import tqdm
 
 
-POLTIFACT = 'poltifact.csv'
-ARTICLES_TRAIN = 'articles_train.csv'
-ARTICLES_TEST ='articles_test.csv'
-IMPROVED_ARTICLES = 'improved_articles.csv'
-current_path = os.path.dirname(__file__)
-
-Corpus: ([str], [str]) = namedtuple('Corpus', 'data target')
+Corpus = namedtuple('Corpus', 'data target')
 Dataset = namedtuple('Dataset', 'data target labels')
 pbar = None
 
@@ -28,8 +20,7 @@ def get_labels(target) -> ([str], [int]):
     return labels, [label_indices[l] for l in target]
 
 
-def get_corpus(file_name: str) -> Corpus:
-    path = os.path.join(current_path, '../data', file_name)
+def get_corpus(path: str) -> Corpus:
     data = read_csv(path)
     data = data.sample(frac=1)
     return Corpus(data.text.tolist(), data.label.tolist())

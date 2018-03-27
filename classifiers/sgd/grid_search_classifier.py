@@ -1,13 +1,13 @@
 import numpy as np
-import classifiers as clss
-
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import SGDClassifier
 from sklearn.metrics import classification_report as clsr
-from sklearn.model_selection import train_test_split as tts, GridSearchCV
+from sklearn.model_selection import GridSearchCV
 from sklearn.pipeline import Pipeline
-from classifiers.sgd.transformers import Tokenise, RemoveStopWords, Lemmenise, identity
+
+import classifiers as clss
 from classifiers.sgd import dataset
+from classifiers.transformers import Tokenise, RemoveStopWords, Lemmenise, identity
 
 #Best parameters set:
 #classifier__alpha: 1e-06
